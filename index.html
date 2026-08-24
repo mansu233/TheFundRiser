@@ -264,6 +264,14 @@
         .modal-card h4 { margin: 0 0 10px 0; font-size: 16px; color: var(--primary); }
         .modal-card p { font-size: 13px; color: #444; margin: 0 0 15px 0; line-height: 1.4; }
         .modal-buttons { display: flex; gap: 8px; }
+        
+        .version-footer {
+            text-align: center;
+            padding: 10px 0;
+            font-size: 11px;
+            color: #888888;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -449,6 +457,11 @@
             <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Wipe all stored data and reset ledger back to default settings.</p>
             <button class="btn btn-danger" onclick="resetAllAppData()">Reset All Data</button>
         </div>
+
+        <!-- APP VERSION NUMBER FOOTER -->
+        <div class="card version-footer">
+            <span>MANSKIT LEDGER PWA • VERSION 1.0.4</span>
+        </div>
     </div>
 
 </div>
@@ -486,7 +499,6 @@
 </nav>
 
 <script>
-    // Service Worker Registration for PWA support
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
@@ -854,7 +866,7 @@
     function calculateDenomTotal() {
         const counts = accountsData[activeAccountKey].denomCounts || {};
         let grandTotalCounted = denoms.reduce((acc, d) => acc + ((counts[d] || 0) * d), 0);
-        document.getElementById('denomTotal').innerText = `₹${grandTotalTotalCounted || grandTotalCounted}`;
+        document.getElementById('denomTotal').innerText = `₹${grandTotalCounted}`;
 
         const collections = accountsData[activeAccountKey].collections || [];
         const expenses = accountsData[activeAccountKey].expenses || [];
