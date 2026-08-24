@@ -1,15 +1,21 @@
-self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open('collection-store').then((cache) => {
-      return cache.addAll(['index.html', 'manifest.json']);
-    })
-  );
-});
-
-self.addEventListener('fetch', (e) => {
-  e.respondWith(
-    caches.match(e.request).then((response) => {
-      return response || fetch(e.request);
-    })
-  );
-});
+{
+  "name": "MANSKIT FUNDRAISER",
+  "short_name": "MANSKIT",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F0F2F5",
+  "theme_color": "#075E54",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
