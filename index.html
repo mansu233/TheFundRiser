@@ -4,6 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MANSKIT FUNDRAISER - MULTI-ACCOUNT LEDGER</title>
+
+    <!-- Embedded PWA Manifest -->
+    <link rel="manifest" href='data:application/manifest+json,{
+        "name": "MANSKIT FUNDRAISER",
+        "short_name": "MANSKIT",
+        "start_url": "/TheFundRiser/index.html",
+        "scope": "/TheFundRiser/",
+        "id": "/TheFundRiser/",
+        "display": "standalone",
+        "background_color": "#F0F2F5",
+        "theme_color": "#075E54",
+        "icons": [
+            { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+            { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+        ]
+    }'>
+    <meta name="theme-color" content="#075E54">
+    <link rel="apple-touch-icon" href="icon-192.png">
+
     <style>
         :root {
             --primary: #075E54;
@@ -1167,6 +1186,26 @@
     renderAccountSelectors();
     initCashCounter();
     updateUI();
+
+    // Register Inline Service Worker for Offline/PWA caching
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            const CACHE_NAME = 'manskit-cache-v1';
+            self.addEventListener('install', e => {
+                e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./', 'index.html'])));
+                self.skipWaiting();
+            });
+            self.addEventListener('activate', e => {
+                e.waitUntil(clients.claim());
+            });
+            self.addEventListener('fetch', e => {
+                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+            });
+        `;
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const blobURL = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(blobURL).catch(console.error);
+    }
 </script>
 
 </body>
