@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MANSKIT FUNDRAISER - MULTI-ACCOUNT LEDGER</title>
+    <style>
+        :root {
+            --primary: #075E54;
+            --primary-dark: #05473F;
+            --accent: #25D366;
+            --bg: #F0F2F5;
+            --card: #FFFFFF;
+            --text: #1C1E21;
+            --border: #E4E6EB;
+            --danger: #DC3545;
+            --warning: #FFC107;
+            --info: #0D6EFD;
+            --success: #198754;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0 0 75px 0;
+        }
+
+        .sticky-top-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+
+        .app-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px 15px 6px 15px;
+            text-align: center;
+        }
+
+        .app-header h1 { font-size: 15px; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .global-account-bar {
+            background-color: var(--primary-dark);
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .global-account-bar label {
+            color: #E8F5E9;
+            font-size: 11px;
+            font-weight: bold;
+            white-space: nowrap;
+            text-transform: uppercase;
+        }
+
+        .global-account-bar select {
+            flex: 1;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #FFFFFF;
+            color: var(--primary-dark);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .container { padding: 12px; max-width: 600px; margin: 0 auto; }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: 60px;
+            background: #FFFFFF;
+            display: flex;
+            border-top: 1px solid var(--border);
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: none;
+            border: none;
+            color: #65676B;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .nav-item .icon { font-size: 18px; margin-bottom: 2px; }
+        .nav-item.active { color: var(--primary); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+            border: 1px solid var(--border);
+        }
+
+        .card h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: var(--primary);
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: #F8F9FA;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus { border-color: var(--primary); background-color: #FFFFFF; }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; }
+        .btn-whatsapp { background-color: var(--accent); color: #000; }
+        .btn-danger { background-color: var(--danger); color: white; }
+        .btn-warning { background-color: var(--warning); color: black; }
+        .btn-secondary { background-color: #6C757D; color: white; }
+        .btn-sm { padding: 6px 10px; font-size: 11px; width: auto; border-radius: 6px; }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+        .summary-card {
+            background: #F0F7F5;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #D1E7DD;
+        }
+
+        .summary-card h4 { margin: 0; font-size: 10px; color: #555; text-transform: uppercase; }
+        .summary-card p { margin: 4px 0 0 0; font-size: 15px; font-weight: bold; color: var(--primary); }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .list-item:last-child { border-bottom: none; }
+        .item-info { display: flex; flex-direction: column; gap: 2px; }
+        .item-title { font-weight: bold; font-size: 13px; text-transform: uppercase; }
+        .item-sub { font-size: 11px; color: #65676B; }
+        .item-actions { display: flex; gap: 6px; }
+
+        .denom-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .denom-row label { font-weight: bold; font-size: 14px; width: 60px; }
+        .denom-row input { width: 90px; text-align: center; padding: 8px; }
+        .denom-row span { width: 80px; text-align: right; font-weight: bold; font-size: 13px; }
+
+        .reconcile-box {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .status-badge {
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 6px;
+            font-size: 12px;
+        }
+
+        .status-match { background: #D1E7DD; color: #0F5132; border: 1px solid #BADBCC; }
+        .status-mismatch { background: #F8D7DA; color: #842029; border: 1px solid #F5C2C7; }
+
+        pre {
+            background: #F8F9FA;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* CUSTOM RESTORE MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 15px;
+        }
+
+        .modal-card {
+            background: #FFFFFF;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .modal-card h4 { margin: 0 0 10px 0; font-size: 16px; color: var(--primary); }
+        .modal-card p { font-size: 13px; color: #444; margin: 0 0 15px 0; line-height: 1.4; }
+        .modal-buttons { display: flex; gap: 8px; }
+    </style>
+</head>
+<body>
+
+<div class="sticky-top-container">
+    <div class="app-header">
+        <h1>MANSKIT FUNDRAISER LEDGER</h1>
+    </div>
+    <div class="global-account-bar">
+        <label for="globalAccountSelect">💼 ACCOUNT:</label>
+        <select id="globalAccountSelect" onchange="switchAccount(this.value)"></select>
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- TAB 1: MASTER LEDGER -->
+    <div id="ledgerTab" class="tab-content active">
+
+        <div class="card">
+            <h3>📊 Collection Overview</h3>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h4>COLLECTED</h4>
+                    <p id="totalCollected">₹0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>NET BALANCE</h4>
+                    <p id="netBalance">₹0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>CASH</h4>
+                    <p id="totalCash">₹0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>GPAY</h4>
+                    <p id="totalGpay">₹0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>EXPENSES</h4>
+                    <p id="totalExpenses">₹0</p>
+                </div>
+                <div class="summary-card">
+                    <h4>PENDING</h4>
+                    <p id="totalPending">₹0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📥 Add Collection</h3>
+            <div class="form-group">
+                <input type="text" id="donorName" placeholder="DONOR NAME" oninput="this.value = this.value.toUpperCase()">
+                <input type="number" inputmode="numeric" id="donorAmount" placeholder="AMOUNT (₹)">
+                <select id="donorStatus" onchange="toggleSplitInputs()">
+                    <option value="CASH">CASH</option>
+                    <option value="GPAY">GPAY</option>
+                    <option value="PEND">PENDING</option>
+                    <option value="SPLIT">SPLIT (CASH + GPAY)</option>
+                </select>
+                
+                <div id="splitInputs" style="display: none; gap: 8px;">
+                    <input type="number" inputmode="numeric" id="splitCash" placeholder="CASH AMOUNT (₹)">
+                    <input type="number" inputmode="numeric" id="splitGpay" placeholder="GPAY AMOUNT (₹)">
+                </div>
+
+                <button class="btn btn-primary" onclick="addCollection()">+ Add Collection Entry</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>
+                <span>📘 Donor Register</span>
+                <button id="toggleDonorBtn" class="btn btn-primary btn-sm" onclick="toggleShowAll('donors')">Show All</button>
+            </h3>
+            <input type="text" id="searchCollection" placeholder="🔍 SEARCH NAME, SL NO, AMOUNT..." onkeyup="renderLists()" style="margin-bottom: 12px;">
+            <div id="donorList"></div>
+        </div>
+
+        <div class="card">
+            <h3>📤 Add Expense</h3>
+            <div class="form-group">
+                <input type="text" id="expenseDesc" placeholder="ITEM DESCRIPTION" oninput="this.value = this.value.toUpperCase()">
+                <input type="number" inputmode="numeric" id="expenseAmount" placeholder="AMOUNT (₹)">
+                <select id="expenseType">
+                    <option value="CASH">CASH</option>
+                    <option value="GPAY">GPAY</option>
+                </select>
+                <button class="btn btn-primary" onclick="addExpense()">+ Add Expense Entry</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>
+                <span>📤 Expense Register</span>
+                <button id="toggleExpenseBtn" class="btn btn-primary btn-sm" onclick="toggleShowAll('expenses')">Show All</button>
+            </h3>
+            <div id="expenseList"></div>
+        </div>
+
+        <div class="card">
+            <h3>📋 Bulk WhatsApp Import</h3>
+            <textarea id="importText" placeholder="PASTE LIST HERE (E.G. 1. ABDUL - ₹1000 [CASH])" oninput="this.value = this.value.toUpperCase()"></textarea>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+                <button class="btn btn-primary" onclick="importCollectionText()">Import Text</button>
+                <button class="btn btn-danger" onclick="clearCurrentAccountData()">Clear Account</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>📱 Generate WhatsApp Report</h3>
+            <button class="btn btn-whatsapp" onclick="generateWhatsAppFormat()">Create WhatsApp Chunks</button>
+            <div id="whatsappOutput" style="margin-top: 12px;"></div>
+        </div>
+    </div>
+
+    <!-- TAB 2: ACCOUNTS MANAGEMENT -->
+    <div id="accountsTab" class="tab-content">
+        <div class="card">
+            <h3>➕ Create New Account</h3>
+            <div class="form-group">
+                <input type="text" id="newAccountName" placeholder="ACCOUNT NAME (E.G. BUILDING FUND 2K26)" oninput="this.value = this.value.toUpperCase()">
+                <button class="btn btn-primary" onclick="createNewAccount()">Create Account</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>💼 Accounts Manager</h3>
+            <div id="accountManagerList"></div>
+        </div>
+    </div>
+
+    <!-- TAB 3: CASH COUNTER & RECONCILIATION -->
+    <div id="cashCounterTab" class="tab-content">
+        
+        <div class="card" style="border: 2px solid var(--primary);">
+            <h3>🔍 Physical Cash Reconciliation</h3>
+            <div style="font-size: 12px; color: #555; margin-bottom: 8px;">
+                Checks if your counted physical cash matches expected cash balance (Cash Income minus Cash Expenses).
+            </div>
+            
+            <div class="reconcile-box" style="background: #F8F9FA; border: 1px solid var(--border);">
+                <div>💵 <strong>Gross Cash Collected:</strong> <span id="recCashIn">₹0</span></div>
+                <div>📤 <strong>Cash Expenses Deducted:</strong> <span id="recCashOut">₹0</span></div>
+                <hr style="border: none; border-top: 1px solid var(--border); margin: 4px 0;">
+                <div>⚖️ <strong>Expected Cash Handled:</strong> <strong id="recExpected">₹0</strong></div>
+                <div>✋ <strong>Physical Cash Counted:</strong> <strong id="recCounted">₹0</strong></div>
+            </div>
+
+            <div id="reconciliationStatus" class="status-badge"></div>
+        </div>
+
+        <div class="card">
+            <h3>💵 Cash Denomination Counter</h3>
+            <div id="denomContainer"></div>
+            <div class="summary-card" style="margin-top: 15px; background: #D1E7DD; padding: 15px;">
+                <h4>TOTAL PHYSICAL CASH COUNTED</h4>
+                <p id="denomTotal" style="font-size: 22px;">₹0</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TAB 4: BACKUP / RESTORE OPTIONS -->
+    <div id="backupTab" class="tab-content">
+        <div class="card">
+            <h3>💾 Ledger Backup (Export)</h3>
+            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Export all accounts, donor entries, expenses, and cash denomination details to a secure JSON file.</p>
+            <button class="btn btn-primary" onclick="exportBackup()">📥 Download Backup File (.JSON)</button>
+        </div>
+
+        <div class="card">
+            <h3>📂 Restore Ledger (Import)</h3>
+            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Restore ledger data from a previously saved JSON file.</p>
+            <div class="form-group">
+                <input type="file" id="importFileInput" accept=".json,application/json,text/plain" style="display: none;" onchange="handleFileSelect(event)">
+                <button class="btn btn-warning" onclick="triggerFileInput()">📤 Select File & Restore</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>⚠️ Factory Reset App Data</h3>
+            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Wipe all stored data and reset ledger back to default settings.</p>
+            <button class="btn btn-danger" onclick="resetAllAppData()">Reset All Data</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- RESTORE CONFIRMATION MODAL -->
+<div id="restoreModal" class="modal-overlay">
+    <div class="modal-card">
+        <h4>📂 Confirm Restore Option</h4>
+        <p>Choose an action for restoring this JSON file:</p>
+        <p>• <strong>OK:</strong> Import file data into local app database.<br>• <strong>Cancel:</strong> Cancel process.</p>
+        <div class="modal-buttons">
+            <button class="btn btn-primary" onclick="confirmRestoreProcess(true)">OK (Import Data)</button>
+            <button class="btn btn-secondary" onclick="confirmRestoreProcess(false)">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('ledgerTab', this)">
+        <span class="icon">📘</span>
+        Ledger
+    </button>
+    <button class="nav-item" onclick="switchTab('accountsTab', this)">
+        <span class="icon">💼</span>
+        Accounts
+    </button>
+    <button class="nav-item" onclick="switchTab('cashCounterTab', this)">
+        <span class="icon">💵</span>
+        Counter
+    </button>
+    <button class="nav-item" onclick="switchTab('backupTab', this)">
+        <span class="icon">💾</span>
+        Backup
+    </button>
+</nav>
+
+<script>
+    let accountsData = JSON.parse(localStorage.getItem('manskit_ledger_data')) || {
+        "DEFAULT LEDGER": {
+            collections: [],
+            expenses: [],
+            denomCounts: {}
+        }
+    };
+    
+    let activeAccountKey = localStorage.getItem('manskit_active_account') || "DEFAULT LEDGER";
+
+    if (!accountsData[activeAccountKey]) {
+        activeAccountKey = Object.keys(accountsData)[0] || "DEFAULT LEDGER";
+    }
+
+    let showAllDonors = false;
+    let showAllExpenses = false;
+    let pendingImportData = null;
+    const denoms = [500, 200, 100, 50, 20, 10, 5, 2, 1];
+
+    function saveToLocalStorage() {
+        localStorage.setItem('manskit_ledger_data', JSON.stringify(accountsData));
+        localStorage.setItem('manskit_active_account', activeAccountKey);
+    }
+
+    function switchTab(tabId, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+        window.scrollTo(0,0);
+    }
+
+    function toggleSplitInputs() {
+        const status = document.getElementById('donorStatus').value;
+        document.getElementById('splitInputs').style.display = status === 'SPLIT' ? 'flex' : 'none';
+    }
+
+    function toggleShowAll(type) {
+        if (type === 'donors') {
+            showAllDonors = !showAllDonors;
+            document.getElementById('toggleDonorBtn').innerText = showAllDonors ? 'Show Recent 3' : 'Show All';
+        } else if (type === 'expenses') {
+            showAllExpenses = !showAllExpenses;
+            document.getElementById('toggleExpenseBtn').innerText = showAllExpenses ? 'Show Recent 3' : 'Show All';
+        }
+        renderLists();
+    }
+
+    function renderAccountSelectors() {
+        const globalSelect = document.getElementById('globalAccountSelect');
+        const managerList = document.getElementById('accountManagerList');
+        
+        globalSelect.innerHTML = '';
+        managerList.innerHTML = '';
+
+        Object.keys(accountsData).forEach(accName => {
+            const option = document.createElement('option');
+            option.value = accName;
+            option.innerText = accName;
+            if (accName === activeAccountKey) option.selected = true;
+            globalSelect.appendChild(option);
+
+            const count = (accountsData[accName].collections || []).length;
+            managerList.innerHTML += `
+                <div class="list-item">
+                    <div class="item-info">
+                        <span class="item-title">${accName} ${accName === activeAccountKey ? '✅' : ''}</span>
+                        <span class="item-sub">${count} Donors Logged</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn btn-warning btn-sm" onclick="editAccountName('${accName}')">Edit</button>
+                        ${Object.keys(accountsData).length > 1 ? `<button class="btn btn-danger btn-sm" onclick="deleteAccount('${accName}')">Delete</button>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function createNewAccount() {
+        const input = document.getElementById('newAccountName');
+        const name = input.value.trim().toUpperCase();
+
+        if (!name) return alert('ENTER ACCOUNT NAME');
+        if (accountsData[name]) return alert('ACCOUNT ALREADY EXISTS');
+
+        accountsData[name] = { collections: [], expenses: [], denomCounts: {} };
+        activeAccountKey = name;
+        input.value = '';
+        
+        saveToLocalStorage();
+        renderAccountSelectors();
+        initCashCounter();
+        updateUI();
+        alert(`ACCOUNT "${name}" CREATED!`);
+    }
+
+    function editAccountName(oldName) {
+        const newName = prompt("RENAME ACCOUNT:", oldName);
+        if (newName === null) return;
+        
+        const trimmed = newName.trim().toUpperCase();
+        if (!trimmed) return alert("ACCOUNT NAME CANNOT BE EMPTY");
+        if (trimmed === oldName) return;
+        if (accountsData[trimmed]) return alert("ACCOUNT WITH THIS NAME ALREADY EXISTS");
+
+        accountsData[trimmed] = accountsData[oldName];
+        delete accountsData[oldName];
+
+        if (activeAccountKey === oldName) {
+            activeAccountKey = trimmed;
+        }
+
+        saveToLocalStorage();
+        renderAccountSelectors();
+        updateUI();
+        alert(`ACCOUNT RENAMED TO "${trimmed}"`);
+    }
+
+    function switchAccount(accName) {
+        activeAccountKey = accName;
+        saveToLocalStorage();
+        renderAccountSelectors();
+        initCashCounter();
+        updateUI();
+    }
+
+    function deleteAccount(accName) {
+        if (Object.keys(accountsData).length <= 1) {
+            return alert("CANNOT DELETE THE ONLY EXISTING ACCOUNT.");
+        }
+
+        if (confirm(`DELETE ACCOUNT "${accName}" AND ALL ITS DATA?`)) {
+            delete accountsData[accName];
+            activeAccountKey = Object.keys(accountsData)[0];
+            saveToLocalStorage();
+            renderAccountSelectors();
+            initCashCounter();
+            updateUI();
+        }
+    }
+
+    function addCollection() {
+        const name = document.getElementById('donorName').value.trim().toUpperCase();
+        const status = document.getElementById('donorStatus').value;
+        let amount = parseFloat(document.getElementById('donorAmount').value) || 0;
+        let cashAmt = 0, gpayAmt = 0;
+
+        if (!name) return alert('ENTER DONOR NAME');
+
+        if (status === 'SPLIT') {
+            cashAmt = parseFloat(document.getElementById('splitCash').value) || 0;
+            gpayAmt = parseFloat(document.getElementById('splitGpay').value) || 0;
+            amount = cashAmt + gpayAmt;
+            if (amount === 0) return alert('ENTER VALID SPLIT AMOUNTS');
+        } else if (status === 'CASH') {
+            cashAmt = amount;
+        } else if (status === 'GPAY') {
+            gpayAmt = amount;
+        }
+
+        if (!accountsData[activeAccountKey].collections) accountsData[activeAccountKey].collections = [];
+        accountsData[activeAccountKey].collections.push({ name, amount, status, cashAmt, gpayAmt });
+        document.getElementById('donorName').value = '';
+        document.getElementById('donorAmount').value = '';
+        document.getElementById('splitCash').value = '';
+        document.getElementById('splitGpay').value = '';
+        saveToLocalStorage();
+        updateUI();
+    }
+
+    function addExpense() {
+        const desc = document.getElementById('expenseDesc').value.trim().toUpperCase();
+        const amount = parseFloat(document.getElementById('expenseAmount').value) || 0;
+        const type = document.getElementById('expenseType').value;
+
+        if (!desc) return alert('ENTER ITEM DESCRIPTION');
+
+        if (!accountsData[activeAccountKey].expenses) accountsData[activeAccountKey].expenses = [];
+        accountsData[activeAccountKey].expenses.push({ desc, amount, type });
+        document.getElementById('expenseDesc').value = '';
+        document.getElementById('expenseAmount').value = '';
+        saveToLocalStorage();
+        updateUI();
+    }
+
+    function editCollection(index) {
+        const item = accountsData[activeAccountKey].collections[index];
+        const newName = prompt("EDIT DONOR NAME:", item.name);
+        if (newName === null) return;
+        const newAmt = prompt("EDIT AMOUNT (₹):", item.amount);
+        if (newAmt === null) return;
+
+        item.name = newName.trim().toUpperCase();
+        item.amount = parseFloat(newAmt) || 0;
+        if (item.status === 'CASH') {
+            item.cashAmt = item.amount;
+            item.gpayAmt = 0;
+        } else if (item.status === 'GPAY') {
+            item.gpayAmt = item.amount;
+            item.cashAmt = 0;
+        } else if (item.status === 'PEND') {
+            item.cashAmt = 0;
+            item.gpayAmt = 0;
+        }
+        saveToLocalStorage();
+        updateUI();
+    }
+
+    function deleteCollection(index) {
+        accountsData[activeAccountKey].collections.splice(index, 1);
+        saveToLocalStorage();
+        updateUI();
+    }
+
+    function deleteExpense(index) {
+        accountsData[activeAccountKey].expenses.splice(index, 1);
+        saveToLocalStorage();
+        updateUI();
+    }
+
+    function renderLists() {
+        const query = document.getElementById('searchCollection').value.toUpperCase();
+        const donorList = document.getElementById('donorList');
+        donorList.innerHTML = '';
+
+        const currentCols = accountsData[activeAccountKey].collections || [];
+        
+        let filteredCols = currentCols.map((item, originalIdx) => ({ ...item, originalIdx }))
+            .filter(item => {
+                const slNo = item.originalIdx + 1;
+                return `${slNo} ${item.name} ${item.amount} ${item.status}`.includes(query);
+            });
+
+        let displayCols = filteredCols;
+        if (!showAllDonors && !query) {
+            displayCols = filteredCols.slice(-3);
+        }
+
+        if (displayCols.length === 0) {
+            donorList.innerHTML = '<div style="font-size:12px; color:#888; padding:10px 0;">NO DONORS LOGGED</div>';
+        } else {
+            displayCols.forEach(item => {
+                const slNo = item.originalIdx + 1;
+                let statusTag = `[${item.status}]`;
+                if (item.status === 'SPLIT') statusTag = `[C: ₹${item.cashAmt || 0} | G: ₹${item.gpayAmt || 0}]`;
+
+                donorList.innerHTML += `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <span class="item-title">${slNo}. ${item.name}</span>
+                            <span class="item-sub">₹${item.amount} • ${statusTag}</span>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-warning btn-sm" onclick="editCollection(${item.originalIdx})">Edit</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteCollection(${item.originalIdx})">X</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const expenseList = document.getElementById('expenseList');
+        expenseList.innerHTML = '';
+        const currentExps = accountsData[activeAccountKey].expenses || [];
+
+        let displayExps = currentExps.map((item, originalIdx) => ({ ...item, originalIdx }));
+        if (!showAllExpenses) {
+            displayExps = displayExps.slice(-3);
+        }
+
+        if (displayExps.length === 0) {
+            expenseList.innerHTML = '<div style="font-size:12px; color:#888; padding:10px 0;">NO EXPENSES LOGGED</div>';
+        } else {
+            displayExps.forEach(item => {
+                expenseList.innerHTML += `
+                    <div class="list-item">
+                        <div class="item-info">
+                            <span class="item-title">${item.originalIdx + 1}. ${item.desc}</span>
+                            <span class="item-sub">₹${item.amount} • [${item.type}]</span>
+                        </div>
+                        <div class="item-actions">
+                            <button class="btn btn-danger btn-sm" onclick="deleteExpense(${item.originalIdx})">X</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    }
+
+    function updateUI() {
+        renderLists();
+
+        const collections = accountsData[activeAccountKey].collections || [];
+        const expenses = accountsData[activeAccountKey].expenses || [];
+
+        let totalCollected = 0, totalCash = 0, totalGpay = 0, totalPending = 0;
+
+        collections.forEach(i => {
+            if (i.status === 'PEND') {
+                totalPending += (i.amount || 0);
+            } else {
+                totalCollected += (i.amount || 0);
+                
+                if (i.status === 'CASH') {
+                    totalCash += (i.amount || 0);
+                } else if (i.status === 'GPAY') {
+                    totalGpay += (i.amount || 0);
+                } else if (i.status === 'SPLIT') {
+                    totalCash += (i.cashAmt || 0);
+                    totalGpay += (i.gpayAmt || 0);
+                }
+            }
+        });
+
+        let totalExp = expenses.reduce((acc, i) => acc + i.amount, 0);
+
+        document.getElementById('totalCollected').innerText = `₹${totalCollected}`;
+        document.getElementById('totalCash').innerText = `₹${totalCash}`;
+        document.getElementById('totalGpay').innerText = `₹${totalGpay}`;
+        document.getElementById('totalExpenses').innerText = `₹${totalExp}`;
+        document.getElementById('netBalance').innerText = `₹${totalCollected - totalExp}`;
+        document.getElementById('totalPending').innerText = `₹${totalPending}`;
+
+        calculateDenomTotal();
+    }
+
+    function initCashCounter() {
+        const container = document.getElementById('denomContainer');
+        container.innerHTML = '';
+        
+        if (!accountsData[activeAccountKey].denomCounts) {
+            accountsData[activeAccountKey].denomCounts = {};
+        }
+
+        const counts = accountsData[activeAccountKey].denomCounts;
+
+        denoms.forEach(d => {
+            if (!(d in counts)) counts[d] = 0;
+            container.innerHTML += `
+                <div class="denom-row">
+                    <label>₹${d}</label>
+                    <input type="number" inputmode="numeric" min="0" value="${counts[d]}" oninput="updateDenom(${d}, this.value)">
+                    <span id="denom-total-${d}">₹${counts[d] * d}</span>
+                </div>
+            `;
+        });
+        calculateDenomTotal();
+    }
+
+    function updateDenom(denom, val) {
+        accountsData[activeAccountKey].denomCounts[denom] = parseInt(val) || 0;
+        document.getElementById(`denom-total-${denom}`).innerText = `₹${accountsData[activeAccountKey].denomCounts[denom] * denom}`;
+        saveToLocalStorage();
+        calculateDenomTotal();
+    }
+
+    function calculateDenomTotal() {
+        const counts = accountsData[activeAccountKey].denomCounts || {};
+        let grandTotalCounted = denoms.reduce((acc, d) => acc + ((counts[d] || 0) * d), 0);
+        document.getElementById('denomTotal').innerText = `₹${grandTotalCounted}`;
+
+        const collections = accountsData[activeAccountKey].collections || [];
+        const expenses = accountsData[activeAccountKey].expenses || [];
+
+        let totalGrossCashIn = 0;
+        collections.forEach(i => {
+            if (i.status !== 'PEND') {
+                if (i.status === 'CASH') totalGrossCashIn += (i.amount || 0);
+                else if (i.status === 'SPLIT') totalGrossCashIn += (i.cashAmt || 0);
+            }
+        });
+
+        let totalCashOut = expenses
+            .filter(e => e.type === 'CASH')
+            .reduce((sum, e) => sum + e.amount, 0);
+
+        let expectedCash = totalGrossCashIn - totalCashOut;
+
+        document.getElementById('recCashIn').innerText = `₹${totalGrossCashIn}`;
+        document.getElementById('recCashOut').innerText = `₹${totalCashOut}`;
+        document.getElementById('recExpected').innerText = `₹${expectedCash}`;
+        document.getElementById('recCounted').innerText = `₹${grandTotalCounted}`;
+
+        const statusElem = document.getElementById('reconciliationStatus');
+        const diff = grandTotalCounted - expectedCash;
+
+        if (diff === 0) {
+            statusElem.className = "status-badge status-match";
+            statusElem.innerText = "✅ PERFECT MATCH: PHYSICAL CASH MATCHES EXPECTED BALANCE!";
+        } else if (diff > 0) {
+            statusElem.className = "status-badge status-mismatch";
+            statusElem.innerText = `⚠️ CASH SURPLUS: YOU HAVE ₹${diff} EXTRA PHYSICAL CASH!`;
+        } else {
+            statusElem.className = "status-badge status-mismatch";
+            statusElem.innerText = `❌ CASH SHORTAGE: ₹${Math.abs(diff)} MISSING FROM PHYSICAL CASH!`;
+        }
+    }
+
+    function exportBackup() {
+        const payload = {
+            appName: "MANSKIT_LEDGER",
+            exportDate: new Date().toISOString(),
+            data: accountsData
+        };
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
+        const dlAnchorElem = document.createElement('a');
+        dlAnchorElem.setAttribute("href", dataStr);
+        dlAnchorElem.setAttribute("download", `MANSKIT_BACKUP_${new Date().toISOString().slice(0,10)}.json`);
+        document.body.appendChild(dlAnchorElem);
+        dlAnchorElem.click();
+        dlAnchorElem.remove();
+    }
+
+    function triggerFileInput() {
+        const inputElem = document.getElementById('importFileInput');
+        inputElem.value = '';
+        inputElem.click();
+    }
+
+    function handleFileSelect(e) {
+        const inputElem = e.target;
+        const file = inputElem.files[0];
+        if (!file) return;
+
+        const fileReader = new FileReader();
+        fileReader.onload = function(event) {
+            try {
+                let rawText = event.target.result.trim();
+                let parsed = JSON.parse(rawText);
+
+                if (typeof parsed === 'string') {
+                    parsed = JSON.parse(parsed);
+                }
+
+                pendingImportData = parsed.data || parsed;
+                document.getElementById('restoreModal').style.display = 'flex';
+            } catch (err) {
+                alert(`❌ FAILED TO READ FILE: ${err.message}`);
+                inputElem.value = '';
+            }
+        };
+        fileReader.readAsText(file);
+    }
+
+    function confirmRestoreProcess(shouldProceed) {
+        const modal = document.getElementById('restoreModal');
+        const inputElem = document.getElementById('importFileInput');
+        modal.style.display = 'none';
+
+        if (!shouldProceed) {
+            pendingImportData = null;
+            inputElem.value = '';
+            alert("PROCEDURE CANCELLED: NOTHING WAS CHANGED.");
+            return;
+        }
+
+        if (!pendingImportData) return;
+
+        try {
+            let targetObj = pendingImportData;
+
+            // Handle multi-account root data object
+            if (typeof targetObj === 'object' && targetObj !== null && !Array.isArray(targetObj)) {
+                Object.keys(targetObj).forEach(accName => {
+                    const accObj = targetObj[accName];
+                    if (typeof accObj === 'object' && accObj !== null) {
+                        accountsData[accName] = {
+                            collections: Array.isArray(accObj.collections) ? accObj.collections : [],
+                            expenses: Array.isArray(accObj.expenses) ? accObj.expenses : [],
+                            denomCounts: (accObj.denomCounts && typeof accObj.denomCounts === 'object') ? accObj.denomCounts : {}
+                        };
+                    }
+                });
+            } else if (Array.isArray(targetObj)) {
+                // Handle raw single collections array
+                if (!accountsData[activeAccountKey]) {
+                    accountsData[activeAccountKey] = { collections: [], expenses: [], denomCounts: {} };
+                }
+                accountsData[activeAccountKey].collections = targetObj;
+            }
+
+            // Ensure active keys exist
+            if (!accountsData[activeAccountKey]) {
+                activeAccountKey = Object.keys(accountsData)[0] || "DEFAULT LEDGER";
+            }
+
+            saveToLocalStorage();
+            renderAccountSelectors();
+            initCashCounter();
+            updateUI();
+
+            alert("✅ RESTORE COMPLETE! ALL ACCOUNTS RESTORED SUCCESSFULLY.");
+        } catch (err) {
+            alert(`❌ RESTORE ERROR: ${err.message}`);
+        } finally {
+            pendingImportData = null;
+            inputElem.value = '';
+        }
+    }
+
+    function resetAllAppData() {
+        if (confirm("⚠️ ARE YOU SURE? THIS WILL PERMANENTLY ERASE ALL LEDGER ACCOUNTS AND ENTRIES.")) {
+            localStorage.removeItem('manskit_ledger_data');
+            localStorage.removeItem('manskit_active_account');
+            location.reload();
+        }
+    }
+
+    function importCollectionText() {
+        const rawText = document.getElementById('importText').value.toUpperCase();
+        if (!rawText.trim()) return alert("PASTE TEXT FIRST");
+
+        const lines = rawText.split('\n');
+        let imported = 0;
+
+        lines.forEach(line => {
+            const match = line.match(/^\d+[\.\)]\s*(.*?)\s*[-–]\s*(?:₹|RS\.?)?\s*(\d+(?:\.\d+)?)\s*(?:\[?(CASH|GPAY|PEND|SPLIT|PENDING)\]?)?/i);
+            if (match) {
+                const name = match[1].trim().toUpperCase();
+                const amount = parseFloat(match[2]);
+                let status = (match[3] || 'CASH').trim().toUpperCase();
+                if (status === 'PENDING') status = 'PEND';
+                
+                let cashAmt = status === 'CASH' ? amount : 0;
+                let gpayAmt = status === 'GPAY' ? amount : 0;
+
+                if (!accountsData[activeAccountKey].collections) accountsData[activeAccountKey].collections = [];
+                accountsData[activeAccountKey].collections.push({ name, amount, status, cashAmt, gpayAmt });
+                imported++;
+            }
+        });
+
+        if (imported > 0) { 
+            saveToLocalStorage(); 
+            alert(`IMPORTED ${imported} ENTRIES!`); 
+            updateUI(); 
+        } else { 
+            alert("UNRECOGNIZED FORMAT."); 
+        }
+    }
+
+    function clearCurrentAccountData() {
+        if (confirm(`CLEAR ALL ENTRIES IN ACCOUNT "${activeAccountKey}"?`)) {
+            accountsData[activeAccountKey].collections = [];
+            accountsData[activeAccountKey].expenses = [];
+            saveToLocalStorage();
+            updateUI();
+        }
+    }
+
+    function generateWhatsAppFormat() {
+        const container = document.getElementById('whatsappOutput');
+        container.innerHTML = '';
+        const collections = accountsData[activeAccountKey].collections || [];
+        const expenses = accountsData[activeAccountKey].expenses || [];
+
+        if (collections.length === 0 && expenses.length === 0) return container.innerHTML = '<p>NO DATA.</p>';
+
+        const chunkSize = 80;
+        let totalParts = Math.ceil(collections.length / chunkSize) || 1;
+
+        for (let i = 0; i < collections.length; i += chunkSize) {
+            const chunk = collections.slice(i, i + chunkSize);
+            const partNum = Math.floor(i / chunkSize) + 1;
+            
+            let text = `📊 *MANSKIT FUNDRAISER - REPORT*\n📌 *ACCOUNT: ${activeAccountKey}*\n*PART ${partNum} OF ${totalParts}*\n\n`;
+            chunk.forEach((item, idx) => {
+                text += `${i + idx + 1}. *${item.name}* - ₹${item.amount} [${item.status}]\n`;
+            });
+
+            createCopyBlock(container, `PART ${partNum} OF ${totalParts}`, text);
+        }
+
+        if (expenses.length > 0) {
+            let expText = `📤 *EXPENSE / OUTFLOW REPORT*\n📌 *ACCOUNT: ${activeAccountKey}*\n\n`;
+            expenses.forEach((item, idx) => { expText += `${idx + 1}. *${item.desc}* - ₹${item.amount} [${item.type}]\n`; });
+            let totalExp = expenses.reduce((acc, i) => acc + i.amount, 0);
+            expText += `\n💵 *TOTAL EXPENSES:* ₹${totalExp}`;
+            createCopyBlock(container, `EXPENSES REPORT`, expText);
+        }
+    }
+
+    function createCopyBlock(container, title, content) {
+        const div = document.createElement('div');
+        div.style.marginBottom = "12px";
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 5px;">
+                <strong style="font-size: 12px;">${title}</strong>
+                <div style="display:flex; gap: 5px;">
+                    <button class="btn btn-primary btn-sm" onclick="navigator.clipboard.writeText(\`${content}\`); alert('COPIED!');">Copy</button>
+                    <button class="btn btn-whatsapp btn-sm" onclick="window.open('https://wa.me/?text=' + encodeURIComponent(\`${content}\`), '_blank')">Share</button>
+                </div>
+            </div>
+            <pre>${content}</pre>
+        `;
+        container.appendChild(div);
+    }
+
+    renderAccountSelectors();
+    initCashCounter();
+    updateUI();
+</script>
+
+</body>
+</html>
