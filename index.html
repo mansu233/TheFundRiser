@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MANSKIT FUNDRAISER - MULTI-ACCOUNT LEDGER</title>
+
+    <!-- PWA Manifest & App Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta name="theme-color" content="#075E54">
+
     <style>
         :root {
             --primary: #075E54;
@@ -235,7 +241,6 @@
             word-break: break-word;
         }
 
-        /* CUSTOM RESTORE MODAL */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -481,6 +486,15 @@
 </nav>
 
 <script>
+    // Service Worker Registration for PWA support
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Service Worker Registered'))
+                .catch(err => console.log('Service Worker Registration Failed:', err));
+        });
+    }
+
     let accountsData = JSON.parse(localStorage.getItem('manskit_ledger_data')) || {
         "DEFAULT LEDGER": {
             collections: [],
@@ -840,7 +854,7 @@
     function calculateDenomTotal() {
         const counts = accountsData[activeAccountKey].denomCounts || {};
         let grandTotalCounted = denoms.reduce((acc, d) => acc + ((counts[d] || 0) * d), 0);
-        document.getElementById('denomTotal').innerText = `₹${grandTotalCounted}`;
+        document.getElementById('denomTotal').innerText = `₹${grandTotalTotalCounted || grandTotalCounted}`;
 
         const collections = accountsData[activeAccountKey].collections || [];
         const expenses = accountsData[activeAccountKey].expenses || [];
@@ -943,7 +957,6 @@
         try {
             let targetObj = pendingImportData;
 
-            // Handle multi-account root data object
             if (typeof targetObj === 'object' && targetObj !== null && !Array.isArray(targetObj)) {
                 Object.keys(targetObj).forEach(accName => {
                     const accObj = targetObj[accName];
@@ -956,14 +969,12 @@
                     }
                 });
             } else if (Array.isArray(targetObj)) {
-                // Handle raw single collections array
                 if (!accountsData[activeAccountKey]) {
                     accountsData[activeAccountKey] = { collections: [], expenses: [], denomCounts: {} };
                 }
                 accountsData[activeAccountKey].collections = targetObj;
             }
 
-            // Ensure active keys exist
             if (!accountsData[activeAccountKey]) {
                 activeAccountKey = Object.keys(accountsData)[0] || "DEFAULT LEDGER";
             }
