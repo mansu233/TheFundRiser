@@ -1,9 +1,9 @@
 {
   "name": "MANSKIT FUNDRAISER",
   "short_name": "MANSKIT",
-  "start_url": "/TheFundRiser/index.html",
-  "scope": "/TheFundRiser/",
-  "id": "/TheFundRiser/",
+  "start_url": "./index.html",
+  "scope": "./",
+  "id": "./",
   "display": "standalone",
   "background_color": "#F0F2F5",
   "theme_color": "#075E54",
@@ -11,12 +11,14 @@
     {
       "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

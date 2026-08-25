@@ -5,21 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MANSKIT FUNDRAISER - MULTI-ACCOUNT LEDGER</title>
 
-    <!-- Embedded PWA Manifest -->
-    <link rel="manifest" href='data:application/manifest+json,{
-        "name": "MANSKIT FUNDRAISER",
-        "short_name": "MANSKIT",
-        "start_url": "/TheFundRiser/index.html",
-        "scope": "/TheFundRiser/",
-        "id": "/TheFundRiser/",
-        "display": "standalone",
-        "background_color": "#F0F2F5",
-        "theme_color": "#075E54",
-        "icons": [
-            { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-            { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
-        ]
-    }'>
+    <!-- External PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#075E54">
     <link rel="apple-touch-icon" href="icon-192.png">
 
@@ -903,7 +890,7 @@
     function calculateDenomTotal() {
         const counts = accountsData[activeAccountKey].denomCounts || {};
         let grandTotalCounted = denoms.reduce((acc, d) => acc + ((counts[d] || 0) * d), 0);
-        document.getElementById('denomTotal').innerText = `₹${grandTotalCounted}`;
+        document.getElementById('denomTotal').innerText = `₹${grandTotalTotalCounted}`;
 
         const collections = accountsData[activeAccountKey].collections || [];
         const expenses = accountsData[activeAccountKey].expenses || [];
@@ -1103,7 +1090,6 @@
         const collections = accountsData[activeAccountKey].collections || [];
         const expenses = accountsData[activeAccountKey].expenses || [];
 
-        // If EXPENSES ONLY is selected, skip collection list altogether
         let filteredCols = [];
         if (filter !== 'EXPENSES_ONLY') {
             filteredCols = collections.filter(item => {
@@ -1116,7 +1102,6 @@
             });
         }
 
-        // Filter Expenses
         let filteredExps = expenses.filter(item => {
             if (filter === 'ALL' || filter === 'EXPENSES_ONLY') return true;
             if (filter === 'CASH') return item.type === 'CASH';
@@ -1131,7 +1116,6 @@
         const chunkSize = 80;
         let totalParts = Math.ceil(filteredCols.length / chunkSize) || 1;
 
-        // Generate Collection Chunks (if any)
         if (filteredCols.length > 0) {
             for (let i = 0; i < filteredCols.length; i += chunkSize) {
                 const chunk = filteredCols.slice(i, i + chunkSize);
@@ -1152,7 +1136,6 @@
             }
         }
 
-        // Generate Expenses Report Block
         if (filteredExps.length > 0) {
             let filterTag = filter === 'ALL' ? '' : ` [${filter.replace('_', ' ')}]`;
             let expText = `📤 *EXPENSE / OUTFLOW REPORT${filterTag}*\n📌 *ACCOUNT: ${activeAccountKey}*\n\n`;
@@ -1187,24 +1170,13 @@
     initCashCounter();
     updateUI();
 
-    // Register Inline Service Worker for Offline/PWA caching
+    // Standard Service Worker Registration
     if ('serviceWorker' in navigator) {
-        const swCode = `
-            const CACHE_NAME = 'manskit-cache-v1';
-            self.addEventListener('install', e => {
-                e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(['./', 'index.html'])));
-                self.skipWaiting();
-            });
-            self.addEventListener('activate', e => {
-                e.waitUntil(clients.claim());
-            });
-            self.addEventListener('fetch', e => {
-                e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
-            });
-        `;
-        const blob = new Blob([swCode], { type: 'application/javascript' });
-        const blobURL = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(blobURL).catch(console.error);
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('SW Registered:', reg.scope))
+                .catch(err => console.error('SW Error:', err));
+        });
     }
 </script>
 
