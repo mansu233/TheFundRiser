@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MANSKIT FUNDRAISER - MULTI-ACCOUNT LEDGER</title>
 
-    <!-- External PWA Manifest -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#075E54">
     <link rel="apple-touch-icon" href="icon-192.png">
@@ -168,6 +167,7 @@
         .btn-danger { background-color: var(--danger); color: white; }
         .btn-warning { background-color: var(--warning); color: black; }
         .btn-secondary { background-color: #6C757D; color: white; }
+        .btn-info { background-color: var(--info); color: white; }
         .btn-sm { padding: 6px 10px; font-size: 11px; width: auto; border-radius: 6px; }
 
         .summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
@@ -263,7 +263,7 @@
 
         .modal-card h4 { margin: 0 0 10px 0; font-size: 16px; color: var(--primary); }
         .modal-card p { font-size: 13px; color: #444; margin: 0 0 15px 0; line-height: 1.4; }
-        .modal-buttons { display: flex; gap: 8px; }
+        .modal-buttons { display: flex; flex-direction: column; gap: 8px; }
     </style>
 </head>
 <body>
@@ -440,14 +440,20 @@
     <!-- TAB 4: BACKUP / RESTORE OPTIONS -->
     <div id="backupTab" class="tab-content">
         <div class="card">
-            <h3>💾 Ledger Backup (Export)</h3>
-            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Export all accounts, donor entries, expenses, and cash denomination details to a secure JSON file.</p>
-            <button class="btn btn-primary" onclick="exportBackup()">📥 Download Backup File (.JSON)</button>
+            <h3>💾 Active Account Backup</h3>
+            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Export only the currently selected account (<b id="activeAccountNameLabel"></b>) to a JSON file.</p>
+            <button class="btn btn-info" onclick="exportSingleAccountBackup()">📥 Export Active Account (.JSON)</button>
+        </div>
+
+        <div class="card">
+            <h3>💾 Entire App Backup (All Accounts)</h3>
+            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Export all accounts, donor entries, expenses, and denomination details into one file.</p>
+            <button class="btn btn-primary" onclick="exportFullBackup()">📥 Download Full Backup (.JSON)</button>
         </div>
 
         <div class="card">
             <h3>📂 Restore Ledger (Import)</h3>
-            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Restore ledger data from a previously saved JSON file.</p>
+            <p style="font-size: 12px; color: #555; margin-bottom: 12px;">Restore data from a JSON file (Single Account or Full App Backup).</p>
             <div class="form-group">
                 <input type="file" id="importFileInput" accept=".json,application/json,text/plain" style="display: none;" onchange="handleFileSelect(event)">
                 <button class="btn btn-warning" onclick="triggerFileInput()">📤 Select File & Restore</button>
@@ -463,15 +469,51 @@
 
 </div>
 
+<!-- EDIT DONOR MODAL -->
+<div id="editDonorModal" class="modal-overlay">
+    <div class="modal-card">
+        <h4>✏️ Edit Entry</h4>
+        <input type="hidden" id="editDonorIndex">
+        <div class="form-group">
+            <label style="font-size:11px; font-weight:bold; color:#555;">DONOR NAME:</label>
+            <input type="text" id="editDonorName" placeholder="DONOR NAME" oninput="this.value = this.value.toUpperCase()">
+            
+            <label style="font-size:11px; font-weight:bold; color:#555;">PAYMENT STATUS:</label>
+            <select id="editDonorStatus" onchange="toggleEditSplitInputs()">
+                <option value="CASH">CASH</option>
+                <option value="GPAY">GPAY</option>
+                <option value="PEND">PENDING</option>
+                <option value="SPLIT">SPLIT (CASH + GPAY)</option>
+            </select>
+
+            <div id="editAmountBox">
+                <label style="font-size:11px; font-weight:bold; color:#555;">AMOUNT (₹):</label>
+                <input type="number" inputmode="numeric" id="editDonorAmount" placeholder="AMOUNT (₹)">
+            </div>
+
+            <div id="editSplitInputs" style="display: none; flex-direction: column; gap: 8px;">
+                <label style="font-size:11px; font-weight:bold; color:#555;">CASH PORTION (₹):</label>
+                <input type="number" inputmode="numeric" id="editSplitCash" placeholder="CASH AMOUNT (₹)">
+                <label style="font-size:11px; font-weight:bold; color:#555;">GPAY PORTION (₹):</label>
+                <input type="number" inputmode="numeric" id="editSplitGpay" placeholder="GPAY AMOUNT (₹)">
+            </div>
+        </div>
+        <div class="modal-buttons" style="margin-top: 10px;">
+            <button class="btn btn-primary" onclick="saveEditedCollection()">Save Changes</button>
+            <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <!-- RESTORE CONFIRMATION MODAL -->
 <div id="restoreModal" class="modal-overlay">
     <div class="modal-card">
         <h4>📂 Confirm Restore Option</h4>
-        <p>Choose an action for restoring this JSON file:</p>
-        <p>• <strong>OK:</strong> Import file data into local app database.<br>• <strong>Cancel:</strong> Cancel process.</p>
+        <p>Select how to handle the imported JSON data:</p>
         <div class="modal-buttons">
-            <button class="btn btn-primary" onclick="confirmRestoreProcess(true)">OK (Import Data)</button>
-            <button class="btn btn-secondary" onclick="confirmRestoreProcess(false)">Cancel</button>
+            <button class="btn btn-info" onclick="confirmRestoreProcess('single')">📥 Restore into Current Active Account Only</button>
+            <button class="btn btn-primary" onclick="confirmRestoreProcess('full')">🌐 Restore / Overwrite All Accounts Data</button>
+            <button class="btn btn-secondary" onclick="confirmRestoreProcess('cancel')">Cancel</button>
         </div>
     </div>
 </div>
@@ -533,6 +575,13 @@
         document.getElementById('splitInputs').style.display = status === 'SPLIT' ? 'flex' : 'none';
     }
 
+    function toggleEditSplitInputs() {
+        const status = document.getElementById('editDonorStatus').value;
+        const isSplit = status === 'SPLIT';
+        document.getElementById('editSplitInputs').style.display = isSplit ? 'flex' : 'none';
+        document.getElementById('editAmountBox').style.display = isSplit ? 'none' : 'block';
+    }
+
     function toggleShowAll(type) {
         if (type === 'donors') {
             showAllDonors = !showAllDonors;
@@ -547,9 +596,11 @@
     function renderAccountSelectors() {
         const globalSelect = document.getElementById('globalAccountSelect');
         const managerList = document.getElementById('accountManagerList');
+        const activeLabel = document.getElementById('activeAccountNameLabel');
         
         globalSelect.innerHTML = '';
         managerList.innerHTML = '';
+        if (activeLabel) activeLabel.innerText = activeAccountKey;
 
         Object.keys(accountsData).forEach(accName => {
             const option = document.createElement('option');
@@ -712,24 +763,49 @@
 
     function editCollection(index) {
         const item = accountsData[activeAccountKey].collections[index];
-        const newName = prompt("EDIT DONOR NAME:", item.name);
-        if (newName === null) return;
-        const newAmt = prompt("EDIT AMOUNT (₹):", item.amount);
-        if (newAmt === null) return;
+        document.getElementById('editDonorIndex').value = index;
+        document.getElementById('editDonorName').value = item.name || '';
+        document.getElementById('editDonorStatus').value = item.status || 'CASH';
+        document.getElementById('editDonorAmount').value = item.amount || 0;
+        document.getElementById('editSplitCash').value = item.cashAmt || 0;
+        document.getElementById('editSplitGpay').value = item.gpayAmt || 0;
 
-        item.name = newName.trim().toUpperCase();
-        item.amount = parseFloat(newAmt) || 0;
-        if (item.status === 'CASH') {
-            item.cashAmt = item.amount;
-            item.gpayAmt = 0;
-        } else if (item.status === 'GPAY') {
-            item.gpayAmt = item.amount;
-            item.cashAmt = 0;
-        } else if (item.status === 'PEND') {
-            item.cashAmt = 0;
-            item.gpayAmt = 0;
+        toggleEditSplitInputs();
+        document.getElementById('editDonorModal').style.display = 'flex';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editDonorModal').style.display = 'none';
+    }
+
+    function saveEditedCollection() {
+        const index = document.getElementById('editDonorIndex').value;
+        const item = accountsData[activeAccountKey].collections[index];
+        const name = document.getElementById('editDonorName').value.trim().toUpperCase();
+        const status = document.getElementById('editDonorStatus').value;
+
+        if (!name) return alert("ENTER DONOR NAME");
+
+        let amount = 0, cashAmt = 0, gpayAmt = 0;
+
+        if (status === 'SPLIT') {
+            cashAmt = parseFloat(document.getElementById('editSplitCash').value) || 0;
+            gpayAmt = parseFloat(document.getElementById('editSplitGpay').value) || 0;
+            amount = cashAmt + gpayAmt;
+        } else {
+            amount = parseFloat(document.getElementById('editDonorAmount').value) || 0;
+            if (status === 'CASH') cashAmt = amount;
+            if (status === 'GPAY') gpayAmt = amount;
         }
+
+        item.name = name;
+        item.status = status;
+        item.amount = amount;
+        item.cashAmt = cashAmt;
+        item.gpayAmt = gpayAmt;
+
         saveToLocalStorage();
+        closeEditModal();
         updateUI();
     }
 
@@ -929,17 +1005,34 @@
         }
     }
 
-    function exportBackup() {
+    /* BACKUP & RESTORE LOGIC */
+    function exportSingleAccountBackup() {
         const payload = {
-            appName: "MANSKIT_LEDGER",
+            appName: "MANSKIT_LEDGER_SINGLE",
+            exportDate: new Date().toISOString(),
+            accountName: activeAccountKey,
+            data: accountsData[activeAccountKey]
+        };
+
+        const sanitizedAccName = activeAccountKey.replace(/[^a-zA-Z0-9]/g, "_");
+        downloadJsonFile(payload, `MANSKIT_ACCOUNT_${sanitizedAccName}_${new Date().toISOString().slice(0,10)}.json`);
+    }
+
+    function exportFullBackup() {
+        const payload = {
+            appName: "MANSKIT_LEDGER_FULL",
             exportDate: new Date().toISOString(),
             data: accountsData
         };
 
+        downloadJsonFile(payload, `MANSKIT_FULL_BACKUP_${new Date().toISOString().slice(0,10)}.json`);
+    }
+
+    function downloadJsonFile(payload, fileName) {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
         const dlAnchorElem = document.createElement('a');
         dlAnchorElem.setAttribute("href", dataStr);
-        dlAnchorElem.setAttribute("download", `MANSKIT_BACKUP_${new Date().toISOString().slice(0,10)}.json`);
+        dlAnchorElem.setAttribute("download", fileName);
         document.body.appendChild(dlAnchorElem);
         dlAnchorElem.click();
         dlAnchorElem.remove();
@@ -966,7 +1059,7 @@
                     parsed = JSON.parse(parsed);
                 }
 
-                pendingImportData = parsed.data || parsed;
+                pendingImportData = parsed;
                 document.getElementById('restoreModal').style.display = 'flex';
             } catch (err) {
                 alert(`❌ FAILED TO READ FILE: ${err.message}`);
@@ -976,51 +1069,79 @@
         fileReader.readAsText(file);
     }
 
-    function confirmRestoreProcess(shouldProceed) {
+    function confirmRestoreProcess(mode) {
         const modal = document.getElementById('restoreModal');
         const inputElem = document.getElementById('importFileInput');
         modal.style.display = 'none';
 
-        if (!shouldProceed) {
+        if (mode === 'cancel') {
             pendingImportData = null;
             inputElem.value = '';
-            alert("PROCEDURE CANCELLED: NOTHING WAS CHANGED.");
-            return;
+            return alert("PROCEDURE CANCELLED: NOTHING WAS CHANGED.");
         }
 
         if (!pendingImportData) return;
 
         try {
-            let targetObj = pendingImportData;
+            let importContent = pendingImportData.data || pendingImportData;
 
-            if (typeof targetObj === 'object' && targetObj !== null && !Array.isArray(targetObj)) {
-                Object.keys(targetObj).forEach(accName => {
-                    const accObj = targetObj[accName];
-                    if (typeof accObj === 'object' && accObj !== null) {
-                        accountsData[accName] = {
-                            collections: Array.isArray(accObj.collections) ? accObj.collections : [],
-                            expenses: Array.isArray(accObj.expenses) ? accObj.expenses : [],
-                            denomCounts: (accObj.denomCounts && typeof accObj.denomCounts === 'object') ? accObj.denomCounts : {}
-                        };
-                    }
-                });
-            } else if (Array.isArray(targetObj)) {
-                if (!accountsData[activeAccountKey]) {
-                    accountsData[activeAccountKey] = { collections: [], expenses: [], denomCounts: {} };
+            if (mode === 'single') {
+                let singleObject = null;
+                if (importContent.collections || importContent.expenses || importContent.denomCounts) {
+                    singleObject = importContent;
+                } else if (typeof importContent === 'object' && importContent[activeAccountKey]) {
+                    singleObject = importContent[activeAccountKey];
+                } else if (typeof importContent === 'object' && Object.keys(importContent).length > 0) {
+                    const firstKey = Object.keys(importContent)[0];
+                    singleObject = importContent[firstKey];
                 }
-                accountsData[activeAccountKey].collections = targetObj;
-            }
 
-            if (!accountsData[activeAccountKey]) {
-                activeAccountKey = Object.keys(accountsData)[0] || "DEFAULT LEDGER";
+                if (!singleObject) {
+                    throw new Error("Invalid format for single account import.");
+                }
+
+                accountsData[activeAccountKey] = {
+                    collections: Array.isArray(singleObject.collections) ? singleObject.collections : [],
+                    expenses: Array.isArray(singleObject.expenses) ? singleObject.expenses : [],
+                    denomCounts: (singleObject.denomCounts && typeof singleObject.denomCounts === 'object') ? singleObject.denomCounts : {}
+                };
+
+                alert(`✅ RESTORE COMPLETE! Restored data into "${activeAccountKey}".`);
+
+            } else if (mode === 'full') {
+                if (typeof importContent === 'object' && importContent !== null && !Array.isArray(importContent)) {
+                    if (importContent.collections || importContent.expenses) {
+                        const accName = pendingImportData.accountName || activeAccountKey;
+                        accountsData[accName] = {
+                            collections: Array.isArray(importContent.collections) ? importContent.collections : [],
+                            expenses: Array.isArray(importContent.expenses) ? importContent.expenses : [],
+                            denomCounts: (importContent.denomCounts && typeof importContent.denomCounts === 'object') ? importContent.denomCounts : {}
+                        };
+                    } else {
+                        Object.keys(importContent).forEach(accName => {
+                            const accObj = importContent[accName];
+                            if (typeof accObj === 'object' && accObj !== null) {
+                                accountsData[accName] = {
+                                    collections: Array.isArray(accObj.collections) ? accObj.collections : [],
+                                    expenses: Array.isArray(accObj.expenses) ? accObj.expenses : [],
+                                    denomCounts: (accObj.denomCounts && typeof accObj.denomCounts === 'object') ? accObj.denomCounts : {}
+                                };
+                            }
+                        });
+                    }
+                }
+
+                if (!accountsData[activeAccountKey]) {
+                    activeAccountKey = Object.keys(accountsData)[0] || "DEFAULT LEDGER";
+                }
+
+                alert("✅ FULL RESTORE COMPLETE! All accounts imported successfully.");
             }
 
             saveToLocalStorage();
             renderAccountSelectors();
             initCashCounter();
             updateUI();
-
-            alert("✅ RESTORE COMPLETE! ALL ACCOUNTS RESTORED SUCCESSFULLY.");
         } catch (err) {
             alert(`❌ RESTORE ERROR: ${err.message}`);
         } finally {
@@ -1170,7 +1291,6 @@
     initCashCounter();
     updateUI();
 
-    // Standard Service Worker Registration
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js')
