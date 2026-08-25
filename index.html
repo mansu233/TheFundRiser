@@ -890,7 +890,7 @@
     function calculateDenomTotal() {
         const counts = accountsData[activeAccountKey].denomCounts || {};
         let grandTotalCounted = denoms.reduce((acc, d) => acc + ((counts[d] || 0) * d), 0);
-        document.getElementById('denomTotal').innerText = `₹${grandTotalTotalCounted}`;
+        document.getElementById('denomTotal').innerText = `₹${grandTotalCounted}`;
 
         const collections = accountsData[activeAccountKey].collections || [];
         const expenses = accountsData[activeAccountKey].expenses || [];
